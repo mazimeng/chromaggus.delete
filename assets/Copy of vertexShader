@@ -1,0 +1,44 @@
+uniform mat4 uMvp;
+uniform mat4 uMv;
+uniform vec4 lightPosition;
+uniform mat4 uNormalMatrix;
+
+
+
+attribute vec3 aPosition;
+attribute vec3 aColor;
+attribute vec3 aNormal;
+
+varying vec3 vColor;
+varying float vLightIntensity;
+
+const float specularContribution = 0.1;
+const float diffuseContribution  = 1.0 - specularContribution;
+
+void main() {
+	//transform vertex, model view matrix
+	vec3 ecPosition = vec3(uMv * vec4(aPosition, 1.0));
+	
+	//transform light position, model view matrix
+	vec3 light = lightPosition.xyz;
+	
+	vec3 tnorm      = normalize(vec3(uNormalMatrix * vec4(aNormal, 1.0)));
+	vec3 lightVec   = normalize(light - ecPosition);
+	vec3 reflectVec = reflect(-lightVec, tnorm);
+	vec3 viewVec    = normalize(-ecPosition);
+	
+	float diffuse   = max(dot(lightVec, tnorm), 0.0);
+    float spec      = 0.0;
+    
+    if (diffuse > 0.0)
+    {
+        spec = max(dot(reflectVec, viewVec), 0.0);
+        spec = pow(spec, 16.0);
+    }
+
+    vLightIntensity  = diffuseContribution * diffuse +
+                      specularContribution * spec;
+                      
+  	gl_Position = vec4(uMvp * vec4(aPosition, 1.0));
+  	vColor = aColor;
+}
