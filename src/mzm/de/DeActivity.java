@@ -16,6 +16,7 @@ import android.opengl.GLES20;
 
 import mzm.de.Globals;
 
+//hi
 public class DeActivity extends Activity {
 	private GLSurfaceView glSurfaceView;
     
