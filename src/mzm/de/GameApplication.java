@@ -19,10 +19,12 @@ import com.badlogic.gdx.physics.box2d.World;
 
 import mzm.de.gui.FontFactory;
 import mzm.de.gui.GlFont;
+import mzm.de.interfaces.ICamera;
 import mzm.de.interfaces.IGameApplication;
 import mzm.de.interfaces.IGameLogic;
 import mzm.library.GlRenderable;
 import mzm.library.LoaderObj;
+import mzm.library.Vector2f;
 import mzm.library.Vector3f;
 
 public class GameApplication implements IGameApplication{
@@ -33,7 +35,7 @@ public class GameApplication implements IGameApplication{
 	private GpuProgramBasic program;
 	private GpuProgramBasic programTextured;
 	private GpuProgramBasic flatProgram;	
-	private GpuProgramOverlay programOverlay;
+	private GpuProgram2d gpuProgram2d;
 	
 	private GpuProgramBasic uber;
 	
@@ -57,7 +59,8 @@ public class GameApplication implements IGameApplication{
     GlRenderable toy;
     GlRenderable unitCube;
     GlRenderable unitSphere;
-    GlRenderable unitSquare;    
+    
+    GlGeometry unitSquare;    
     
     GlTexture toyTexture;
     GlTexture bioTexture;
@@ -72,7 +75,7 @@ public class GameApplication implements IGameApplication{
     
     GlCamera camera;
 
-	private long elp;
+	private long elapsed;
 	private long lastFrame;
 	
 	Character character;
@@ -82,7 +85,6 @@ public class GameApplication implements IGameApplication{
 	
 	public Vector3f rayHitPoint;
 	
-	private float elapsed1 = 0;
 	private float frameRate = 1000.0f/60.0f;
 	
 	
@@ -92,112 +94,155 @@ public class GameApplication implements IGameApplication{
 	
 	protected GLSurfaceView view;
 	protected OnTouchListener touchListener; 
+	protected IRenderingSystem renderingSystem;
+	protected IRenderableLayer worldLayer;
+	protected ICamera camera2d;
+	
+	public ICamera getCamera(){
+		return this.camera2d;
+	}
 	
 	@Override
 	public void step() {
 		//Debug.startMethodTracing("de");
 		long current = System.currentTimeMillis();
-		elp = current - this.lastFrame;
+		elapsed = current - this.lastFrame;
 		this.lastFrame = current;
 		
-		this.update(elp);
-		this.gameLogic.update(elp);
+		this.update(elapsed);
+		this.gameLogic.update(elapsed);
+		this.renderingSystem.update(elapsed);
 		
-		this.render(elp);
-		this.renderOverlay(elp);
+		this.renderingSystem.render(elapsed);
 		
-		this.elapsed1+=elp;
+		//this.render(elapsed);
+		//this.renderOverlay(elapsed);
 		
-		if(this.elapsed1>frameRate){
-			
-			
-			this.elapsed1 = 0;
-		}
 		//Debug.stopMethodTracing();
 		
 	}
 
 	@Override
-	public void resize(float width, float height) {
-		Matrix.setIdentityM(this.projectionMatrix, 0);
-		Matrix.setIdentityM(this.orthographicMatrix, 0);
+	public void resize(int width, int height) {
+//		Matrix.setIdentityM(this.projectionMatrix, 0);
+//		Matrix.setIdentityM(this.orthographicMatrix, 0);
 		
-		{
-			GLES20.glViewport(0, 0, (int)width, (int)height);
-	        float ratio = (float) width / height;
-	        float fov = (float)Math.PI/6.0f;
-	        float near = 0.1f;
-	        float far = 100000.0f;
-	        float h = (float)Math.tan(fov)*near;
-	        float w = ratio*h;
-	        Matrix.frustumM(projectionMatrix, 0, -w, w, -h, h, near, far);
-	        
-	        this.windowHeight = (int)height;
-	        this.windowWidth = (int)width;
-		}
+		this.renderingSystem.resize(width, height);
 		
-		{
-	        
-			////(0,0) at center of screen
-	        float left  = -0.5f*width;
-	        float right = 0.5f*width;
-	        float top = 0.5f*height;
-	        float bottom = -0.5f*height;
-	        float far = 1;
-	        float near = -1;
-	        
-	        Matrix.orthoM(this.orthographicMatrix, 0, left, right, bottom, top, near, far);
-	        
-	        //(0,0) at bottom left corner
-//	        Matrix.orthoM(this.orthographicMatrix, 0, 
-//	        		0, this.windowWidth, 
-//	        		//-this.windowHeight, 0, 
-//	        		0, this.windowHeight, 
-//	        		-1, 1);
-	        
-//	        float[] a = new float[16];
-//	        float[] b = new float[16];
+//		{
+//			GLES20.glViewport(0, 0, (int)width, (int)height);
+//	        float ratio = (float) width / height;
+//	        float fov = (float)Math.PI/6.0f;
+//	        float near = 0.1f;
+//	        float far = 100000.0f;
+//	        float h = (float)Math.tan(fov)*near;
+//	        float w = ratio*h;
+//	        Matrix.frustumM(projectionMatrix, 0, -w, w, -h, h, near, far);
 //	        
-//	        Matrix.setIdentityM(a, 0);
-//	        Matrix.setIdentityM(b, 0);
+//	        this.windowHeight = (int)height;
+//	        this.windowWidth = (int)width;
+//		}
+//		
+//		{
 //	        
-//	        System.arraycopy(this.orthographicMatrix, 0, a, 0, 16);
-	        //Matrix.translateM(b, 0, left, top, 0);
-	        
-	        //Matrix.multiplyMM(this.orthographicMatrix, 0, a, 0, b, 0);
-	        
-//	        this.orthographicMatrix[0] = 2/(right-left);
-//	        this.orthographicMatrix[5] = 2/(top-bottom);
-//	        this.orthographicMatrix[10] = -2/(far-near);
+//			////(0,0) at center of screen
+//	        float left  = -0.5f*width;
+//	        float right = 0.5f*width;
+//	        float top = 0.5f*height;
+//	        float bottom = -0.5f*height;
+//	        float far = 1;
+//	        float near = -1;
 //	        
-//	        this.orthographicMatrix[12] = -(right+left)/(right-left);
-//	        this.orthographicMatrix[13] = -(top+bottom)/(top-bottom);
-//	        this.orthographicMatrix[14] = -(far+near)/(far-near);
-		}
+//	        Matrix.orthoM(this.orthographicMatrix, 0, left, right, bottom, top, near, far);
+//	        
+//	        //(0,0) at bottom left corner
+////	        Matrix.orthoM(this.orthographicMatrix, 0, 
+////	        		0, this.windowWidth, 
+////	        		//-this.windowHeight, 0, 
+////	        		0, this.windowHeight, 
+////	        		-1, 1);
+//	        
+////	        float[] a = new float[16];
+////	        float[] b = new float[16];
+////	        
+////	        Matrix.setIdentityM(a, 0);
+////	        Matrix.setIdentityM(b, 0);
+////	        
+////	        System.arraycopy(this.orthographicMatrix, 0, a, 0, 16);
+//	        //Matrix.translateM(b, 0, left, top, 0);
+//	        
+//	        //Matrix.multiplyMM(this.orthographicMatrix, 0, a, 0, b, 0);
+//	        
+////	        this.orthographicMatrix[0] = 2/(right-left);
+////	        this.orthographicMatrix[5] = 2/(top-bottom);
+////	        this.orthographicMatrix[10] = -2/(far-near);
+////	        
+////	        this.orthographicMatrix[12] = -(right+left)/(right-left);
+////	        this.orthographicMatrix[13] = -(top+bottom)/(top-bottom);
+////	        this.orthographicMatrix[14] = -(far+near)/(far-near);
+//		}
 	}
 
 	@Override
 	public void initialize() {
 		this.view.setOnTouchListener(this.touchListener);
 		
+		
+		
 		this.initializeGpuProgram();
 		this.initializeMeshes();		
 		this.initializeFont();
 		this.initializePhysics();
 		
+		
+		
 		this.camera = new GlCamera();
 		
 		this.camera.setPosition(new Vector3f(0, 0, 5));
 		
-		GLES20.glEnable(GLES20.GL_DEPTH_TEST);
-		GLES20.glEnable(GLES20.GL_CULL_FACE);	
-		GLES20.glFrontFace(GLES20.GL_CCW);
-		GLES20.glCullFace(GLES20.GL_BACK);
-		GLES20.glDepthFunc( GLES20.GL_LEQUAL );		
-		GLES20.glDepthMask( true );
-		GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
+		GlRenderingSystem rs = new GlRenderingSystem();
+		rs.initialize();
+		this.renderingSystem = rs;
 		
-		GLES20.glClearColor(0.3f, 0.2f, 0.5f, 0.0f);
+		this.worldLayer = new GlRenderableLayer2d();
+		
+		{
+			this.camera2d = new GlCamera2d();
+			//float[] m = new float[16];
+			//Matrix.setIdentityM(m, 0);
+			
+		}
+		
+		this.worldLayer.setCamera(this.camera2d);
+		
+		
+		GlViewport2d viewport = new GlViewport2d();
+		this.worldLayer.setViewport(viewport);
+		
+		this.renderingSystem.addLayer(this.worldLayer);
+		
+		{
+			GlSprite sprite = new GlSprite(this.gpuProgram2d, this.bioTexture, this.unitSquare);
+			float[] transform = new float[16];
+			Matrix.setIdentityM(transform, 0);
+			Matrix.scaleM(transform, 0, 100, 100, 0);
+			sprite.setMatrix(transform);
+			this.worldLayer.addRenderable(sprite);
+		}
+		
+		
+		
+//		GLES20.glEnable(GLES20.GL_DEPTH_TEST);
+//		GLES20.glEnable(GLES20.GL_CULL_FACE);	
+//		GLES20.glFrontFace(GLES20.GL_CCW);
+//		GLES20.glCullFace(GLES20.GL_BACK);
+		
+		
+//		GLES20.glDepthFunc( GLES20.GL_LEQUAL );		
+//		GLES20.glDepthMask( true );
+//		GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
+//		
+//		GLES20.glClearColor(0.3f, 0.2f, 0.5f, 0.0f);
 		
 	}
 	
@@ -205,7 +250,7 @@ public class GameApplication implements IGameApplication{
 	
 	public GameApplication(Context context, GLSurfaceView view){
 		this.context = context;
-		this.elp = 0;
+		this.elapsed = 0;
 		this.lastFrame = System.currentTimeMillis();
 		this.view = view;
 		
@@ -219,6 +264,10 @@ public class GameApplication implements IGameApplication{
 		this.camera.update(elapsed);
 	}
 	
+	public IGameLogic getGameLogic(){
+		return this.gameLogic;
+	}
+	
 	
 	private void renderOverlay(float elapsed){
 		GLES20.glDisable(GLES20.GL_DEPTH_TEST);
@@ -227,7 +276,7 @@ public class GameApplication implements IGameApplication{
 			float[] t = new float[16];
 			float[] u = new float[16];
 			
-        	this.programOverlay.use();        	
+        	this.gpuProgram2d.use();        	
         	//this.squareTexture.activate();
         	
         	
@@ -255,32 +304,32 @@ public class GameApplication implements IGameApplication{
 //        	Matrix.scaleM(t, 0, 1280, 500, 1);
 //        	this.drawOverlay(this.unitSquare, programOverlay, t);
         	
-        	float[] temp = new float[16];
-        	Matrix.setIdentityM(view2dMatrix, 0);
-        	
-        	Matrix.translateM(view2dMatrix, 0, 0, 0, 0);
-        	{
-        		Matrix.setIdentityM(temp, 0);
-        		int w = 784*2;
-        		int h = 1084*2;
-	        	this.worldMapTexture.activate();
-	        	Matrix.setIdentityM(t, 0);
-	        	//Matrix.translateM(t, 0, 784*0.5f, h*0.5f, 0);
-	        	Matrix.scaleM(t, 0, w, h, 1);
-	        	Matrix.multiplyMM(temp, 0, view2dMatrix, 0, t, 0);
-	        	this.drawOverlay(this.unitSquare, programOverlay, temp);
-        	}
-        	
-        	{
-        		Matrix.setIdentityM(temp, 0);
-	        	float size = 100;
-	        	this.meTexture.activate();
-	        	Matrix.setIdentityM(t, 0);
-	        	//Matrix.translateM(t, 0, size*0.5f+100, size*0.5f, 0);
-	        	Matrix.scaleM(t, 0, size, size, 1);
-	        	Matrix.multiplyMM(temp, 0, view2dMatrix, 0, t, 0);
-	        	this.drawOverlay(this.unitSquare, programOverlay, temp);
-        	}
+//        	float[] temp = new float[16];
+//        	Matrix.setIdentityM(view2dMatrix, 0);
+//        	
+//        	Matrix.translateM(view2dMatrix, 0, 0, 0, 0);
+//        	{
+//        		Matrix.setIdentityM(temp, 0);
+//        		int w = 784*2;
+//        		int h = 1084*2;
+//	        	this.worldMapTexture.activate();
+//	        	Matrix.setIdentityM(t, 0);
+//	        	//Matrix.translateM(t, 0, 784*0.5f, h*0.5f, 0);
+//	        	Matrix.scaleM(t, 0, w, h, 1);
+//	        	Matrix.multiplyMM(temp, 0, view2dMatrix, 0, t, 0);
+//	        	this.drawOverlay(this.unitSquare, programOverlay, temp);
+//        	}
+//        	
+//        	{
+//        		Matrix.setIdentityM(temp, 0);
+//	        	float size = 100;
+//	        	this.meTexture.activate();
+//	        	Matrix.setIdentityM(t, 0);
+//	        	//Matrix.translateM(t, 0, size*0.5f+100, size*0.5f, 0);
+//	        	Matrix.scaleM(t, 0, size, size, 1);
+//	        	Matrix.multiplyMM(temp, 0, view2dMatrix, 0, t, 0);
+//	        	this.drawOverlay(this.unitSquare, programOverlay, temp);
+//        	}
 //        	this.bioTexture.activate();
 //        	Matrix.setIdentityM(t, 0);
 //        	Matrix.translateM(t, 0, 100, 100, 0);
@@ -461,8 +510,8 @@ public class GameApplication implements IGameApplication{
 			InputStream vi = this.context.getAssets().open("overlay.vert");			
 			
 			InputStream fi = this.context.getAssets().open("overlay.frag");
-			this.programOverlay = new GpuProgramOverlay();
-			programOverlay.load(vi, fi);
+			this.gpuProgram2d = new GpuProgram2d();
+			gpuProgram2d.load(vi, fi);
 		}
 		catch(Exception ex){
 			String msg = "overlay program failed: "+ex.getMessage();
@@ -555,15 +604,11 @@ public class GameApplication implements IGameApplication{
 							1, 0,
 					};
 					
-					this.unitSquare = new GlRenderable();		
-					
-					this.unitSquare.numberOfFloatsPerColor = 4;
-					this.unitSquare.numberOfFloatsPerVertex = 2;
-					
+					this.unitSquare = new GlGeometry();						
 					this.unitSquare.bufferPosition(p, 0, p.length);
-					this.unitSquare.bufferColor(c, 0, c.length);
 					this.unitSquare.bufferTextureCoordinate(t, 0, t.length);
-					this.unitSquare.setPrimitiveMode(GLES20.GL_TRIANGLES);
+					
+					
 			}
 			
 		}
@@ -756,5 +801,10 @@ public class GameApplication implements IGameApplication{
 		World world = new World(v, true);
 		//com.badlogic.gdx.physics.box2d.Transform t = new com.badlogic.gdx.physics.box2d.Transform();
 	}
+	
+	public void QueueEvent(Runnable runnable){
+		this.view.queueEvent(runnable);
+	}
+	
 	
 }

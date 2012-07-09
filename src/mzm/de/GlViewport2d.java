@@ -26,11 +26,11 @@ public class GlViewport2d implements IViewport{
 	@Override
 	public float[] getMatrix() {
 		// TODO Auto-generated method stub
-		return null;
+		return this.matrix;
 	}
 
 	@Override
-	public void update(float width, float height) {
+	public void calculate(float width, float height) {
 		float left  = -0.5f*width;
         float right = 0.5f*width;
         float top = 0.5f*height;
@@ -41,7 +41,6 @@ public class GlViewport2d implements IViewport{
         this.width = width;
         this.height = height;
         
-        this.matrix = new float[16];
 		Matrix.setIdentityM(this.matrix, 0);
         Matrix.orthoM(this.matrix, 0, left, right, bottom, top, near, far);
 	}
@@ -51,11 +50,5 @@ public class GlViewport2d implements IViewport{
 			GLES20.glViewport(0, 0, (int)width, (int)height);
 			this.use=true;
 		}
-	}
-
-	@Override
-	public ICamera getCamera() {
-		// TODO Auto-generated method stub
-		return null;
 	}
 }

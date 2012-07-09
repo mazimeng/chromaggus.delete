@@ -1,6 +1,7 @@
 package mzm.de;
 
 import java.io.InputStream;
+import java.util.HashMap;
 
 import mzm.de.interfaces.IGpuProgram;
 
@@ -12,6 +13,7 @@ public abstract class GpuProgram implements IGpuProgram{
 	private Shader fs;
 	private int programId;
 	
+	protected HashMap<String, Integer> handles;
 //	public int aPositionHandle;
 //	public int aColorHandle;
 //	public int aNormalHandle;
@@ -19,7 +21,11 @@ public abstract class GpuProgram implements IGpuProgram{
 //	public int uMvpHandle;
 //	public int uNormalMatrixHandle;
 //	public int uLightPositionHandle;
-//	public int uMvHandle;
+//	public int uMvHandle;	
+	
+	public GpuProgram(){
+		this.handles = new HashMap<String, Integer>();
+	}
 	
 	public void load(InputStream vi, InputStream fi) throws Exception{		
 		vs = new Shader();

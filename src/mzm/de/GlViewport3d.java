@@ -36,15 +36,16 @@ public class GlViewport3d implements IViewport {
 	}
 
 	@Override
-	public void update(float width, float height) {
+	public void calculate(float width, float height) {
 		// TODO Auto-generated method stub
 		
 	}
 
 
 	@Override
-	public ICamera getCamera() {
+	public void use() {
 		// TODO Auto-generated method stub
-		return null;
+		
 	}
+
 }

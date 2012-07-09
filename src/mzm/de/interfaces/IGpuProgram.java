@@ -11,4 +11,5 @@ public interface IGpuProgram {
 	int getAttributeLocation(String attributeName);
 
 	void use();
+	//int getHandle(String handleName);
 }

@@ -2,6 +2,6 @@ package mzm.de.interfaces;
 
 public interface IGameApplication {
 	void step();
-	void resize(float width, float height);
+	void resize(int width, int height);
 	void initialize();
 }
