@@ -84,6 +84,8 @@ public class GlRenderableLayer implements IRenderableLayer{
 
 	@Override
 	public void update(float elapsed) {
+		this.camera.update(elapsed);
+		
 		Matrix.multiplyMM(projectionViewMatrix, 0, 
 				this.getViewport().getMatrix(), 0, 
 				this.getCamera().getMatrix(), 0);

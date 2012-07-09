@@ -35,17 +35,33 @@ public class GlViewport3d implements IViewport {
 		return this.matrix;
 	}
 
-	@Override
-	public void calculate(float width, float height) {
-		// TODO Auto-generated method stub
-		
-	}
 
 
 	@Override
 	public void use() {
 		// TODO Auto-generated method stub
 		
+	}
+
+
+	@Override
+	public void calculate(int width, int height) {
+		// TODO Auto-generated method stub
+		
+	}
+
+
+	@Override
+	public int getWidth() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+
+	@Override
+	public int getHeight() {
+		// TODO Auto-generated method stub
+		return 0;
 	}
 
 }

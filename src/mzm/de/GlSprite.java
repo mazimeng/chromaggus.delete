@@ -6,6 +6,7 @@ import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 
 import mzm.de.interfaces.IRenderable;
+import mzm.library.Vector2f;
 import android.opengl.GLES20;
 import android.opengl.Matrix;
 
@@ -16,6 +17,8 @@ public class GlSprite implements IRenderable{
 	
 	protected GlTexture texture;
 	protected GlGeometry geo;
+	protected Vector2f size;
+	protected Vector2f position;
 	
 	public GlSprite(GpuProgram2d program, GlTexture texture, GlGeometry geo){
 		this.gpuProgram = program;
@@ -23,6 +26,9 @@ public class GlSprite implements IRenderable{
 		this.geo = geo;
 		this.matrix = new float[16];
 		Matrix.setIdentityM(this.matrix, 0);
+		
+		this.size = new Vector2f();
+		this.position = new Vector2f();
 	}
 	
 	
@@ -34,6 +40,14 @@ public class GlSprite implements IRenderable{
 		this.texture = texture;
 	}
 	
+	public void setPosition(Vector2f pos){
+		this.position = new Vector2f(pos);
+	}
+	
+	public void setSize(Vector2f size){
+		this.size = new Vector2f(size);
+	}
+	
 	public void render(IRenderableLayer layer, float elapsed){
 		this.gpuProgram.use();
 		this.texture.activate();
@@ -42,6 +56,11 @@ public class GlSprite implements IRenderable{
 		float[] b= new float[16];
 		Matrix.setIdentityM(a, 0);
 		Matrix.setIdentityM(b, 0);
+		Matrix.setIdentityM(this.matrix, 0);
+		
+		Matrix.translateM(this.matrix, 0, this.position.x, this.position.y, 0);
+		Matrix.scaleM(this.matrix, 0, this.size.x, this.size.y, 1);
+		
 		
 		Matrix.multiplyMM(a, 0, layer.getCamera().getMatrix(), 0, this.matrix, 0);
 		

@@ -4,6 +4,8 @@ import mzm.de.interfaces.ICamera;
 
 public interface IViewport {
 	float[] getMatrix();
-	void calculate(float width, float height);
+	void calculate(int width, int height);
 	void use();
+	int getWidth();
+	int getHeight();
 }

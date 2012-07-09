@@ -6,8 +6,8 @@ import android.opengl.GLES20;
 import android.opengl.Matrix;
 
 public class GlViewport2d implements IViewport{
-	protected float width;
-	protected float height;
+	protected int width;
+	protected int height;
 	protected float far;
 	protected float near;
 	protected float[] matrix;
@@ -30,7 +30,7 @@ public class GlViewport2d implements IViewport{
 	}
 
 	@Override
-	public void calculate(float width, float height) {
+	public void calculate(int width, int height) {
 		float left  = -0.5f*width;
         float right = 0.5f*width;
         float top = 0.5f*height;
@@ -50,5 +50,17 @@ public class GlViewport2d implements IViewport{
 			GLES20.glViewport(0, 0, (int)width, (int)height);
 			this.use=true;
 		}
+	}
+
+	@Override
+	public int getWidth() {
+		// TODO Auto-generated method stub
+		return this.width;
+	}
+
+	@Override
+	public int getHeight() {
+		// TODO Auto-generated method stub
+		return this.height;
 	}
 }

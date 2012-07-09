@@ -96,9 +96,9 @@ public class GameApplication implements IGameApplication{
 	protected OnTouchListener touchListener; 
 	protected IRenderingSystem renderingSystem;
 	protected IRenderableLayer worldLayer;
-	protected ICamera camera2d;
+	protected GlCamera2d camera2d;
 	
-	public ICamera getCamera(){
+	public GlCamera2d getCamera(){
 		return this.camera2d;
 	}
 	
@@ -208,8 +208,7 @@ public class GameApplication implements IGameApplication{
 		
 		{
 			this.camera2d = new GlCamera2d();
-			//float[] m = new float[16];
-			//Matrix.setIdentityM(m, 0);
+			this.camera2d.setPosition(new Vector2f(300, 300));
 			
 		}
 		
@@ -222,13 +221,20 @@ public class GameApplication implements IGameApplication{
 		this.renderingSystem.addLayer(this.worldLayer);
 		
 		{
-			GlSprite sprite = new GlSprite(this.gpuProgram2d, this.bioTexture, this.unitSquare);
-			float[] transform = new float[16];
-			Matrix.setIdentityM(transform, 0);
-			Matrix.scaleM(transform, 0, 100, 100, 0);
-			sprite.setMatrix(transform);
+			GlSprite sprite = new GlSprite(this.gpuProgram2d, this.worldMapTexture, this.unitSquare);
+			int w = 784*2;
+    		int h = 1084*2;
+    		sprite.setSize(new Vector2f(w, h));			
 			this.worldLayer.addRenderable(sprite);
 		}
+		
+		{
+			GlSprite sprite = new GlSprite(this.gpuProgram2d, this.bioTexture, this.unitSquare);
+			sprite.setSize(new Vector2f(100, 100));
+			this.worldLayer.addRenderable(sprite);
+		}
+		
+		
 		
 		
 		
@@ -806,5 +812,18 @@ public class GameApplication implements IGameApplication{
 		this.view.queueEvent(runnable);
 	}
 	
+	public Vector2f toWorldCoordinate(Vector2f screen){
+		int w = this.worldLayer.getViewport().getWidth();
+		int h = this.worldLayer.getViewport().getHeight();
+
+		Vector2f d = new Vector2f(screen.x - 0.5f*w, -(screen.y - 0.5f*h));
+				
+		Vector2f camPos = this.camera2d.getPosition();
+		Vector2f c = camPos.add(d);
+		return c;		
+	}
 	
+	public void get(Vector2f screen){
+		
+	}
 }
