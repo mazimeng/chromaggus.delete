@@ -40,7 +40,7 @@ public class DeActivity extends Activity {
             v.initialize();
             
             GameApplication app = new GameApplication(this, v);
-            
+
             RendererGl20 renderer = new RendererGl20(app);
         	v.setRenderer(renderer);
             
